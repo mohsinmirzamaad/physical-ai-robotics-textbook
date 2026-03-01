@@ -77,10 +77,11 @@ https://mohsinmirzamaad.github.io/physical-ai-robotics-textbook/
    https://github.com/mohsinmirzamaad/physical-ai-robotics-textbook
    ```
 
-2. **Published Book Link** ⏳
+2. **Published Book Link** ✅
    ```
-   https://mohsinmirzamaad.github.io/physical-ai-robotics-textbook/
+   https://hackathon-1-drab.vercel.app
    ```
+   (Also available at: https://mohsinmirzamaad.github.io/physical-ai-robotics-textbook/)
 
 3. **Demo Video Link** ⏳
    - Upload to YouTube (unlisted) or Google Drive
