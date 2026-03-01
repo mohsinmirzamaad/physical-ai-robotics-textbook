@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Physical AI & Humanoid Robotics',
-  tagline: 'Master Physical AI through hands-on learning with ROS 2, Gazebo, NVIDIA Isaac, and Vision-Language-Action models',
+  tagline: 'Master Physical AI through hands-on learning with ROS 2, Gazebo, NVIDIA Isaac, and Vision-Language-Action models for humanoid robots',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
