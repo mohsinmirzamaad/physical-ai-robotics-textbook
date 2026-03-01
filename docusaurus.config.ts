@@ -10,13 +10,14 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://physical-ai-textbook.vercel.app',
+  url: 'https://your-username.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
-  baseUrl: '/',
+  // For GitHub pages deployment, it is often '/<projectName>/'
+  baseUrl: '/hackathon-1/',
 
   // GitHub pages deployment config.
-  organizationName: 'your-org', // Update with your GitHub org/user name
-  projectName: 'physical-ai-textbook',
+  organizationName: 'your-username', // Usually your GitHub org/user name
+  projectName: 'hackathon-1', // Usually your repo name
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
