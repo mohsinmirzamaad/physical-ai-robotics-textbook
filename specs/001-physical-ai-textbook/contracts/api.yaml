@@ -1,0 +1,647 @@
+openapi: 3.1.0
+info:
+  title: Physical AI Textbook API
+  description: API for authentication, chatbot, personalization, and translation features
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: https://physical-ai-textbook.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User signup, login, and session management
+  - name: Chatbot
+    description: RAG-powered chatbot for answering questions
+  - name: Content
+    description: Content personalization and translation
+  - name: Health
+    description: System health and status
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email, password, and background questionnaire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - softwareExperience
+                - hardwareExperience
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: student@example.com
+                password:
+                  type: string
+                  minLength: 10
+                  example: SecurePass123!
+                  description: Must contain uppercase, lowercase, number, and special character
+                softwareExperience:
+                  type: string
+                  enum: [beginner, intermediate, advanced]
+                  example: intermediate
+                hardwareExperience:
+                  type: string
+                  enum: [none, hobbyist, professional]
+                  example: hobbyist
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  userId:
+                    type: string
+                    format: uuid
+                    example: 550e8400-e29b-41d4-a716-446655440000
+                  message:
+                    type: string
+                    example: Account created successfully
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: student@example.com
+                password:
+                  type: string
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=abc123; HttpOnly; Secure; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Invalidate current session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged out successfully
+
+  /auth/session:
+    get:
+      tags:
+        - Authentication
+      summary: Get current session
+      description: Retrieve current user session information
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: false
+
+  /auth/password-reset/request:
+    post:
+      tags:
+        - Authentication
+      summary: Request password reset
+      description: Send password reset email to user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: student@example.com
+      responses:
+        '200':
+          description: Reset email sent (always returns success for security)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: If the email exists, a reset link has been sent
+
+  /auth/password-reset/confirm:
+    post:
+      tags:
+        - Authentication
+      summary: Confirm password reset
+      description: Reset password using token from email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                newPassword:
+                  type: string
+                  minLength: 10
+                  example: NewSecurePass123!
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password reset successfully
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat:
+    post:
+      tags:
+        - Chatbot
+      summary: Send chat message (non-streaming)
+      description: Send a question to the chatbot and receive a complete response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/stream:
+    post:
+      tags:
+        - Chatbot
+      summary: Send chat message (streaming)
+      description: Send a question and receive a streaming response via Server-Sent Events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Streaming response
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: message
+                  data: {"chunk": "ROS 2 is"}
+
+                  event: message
+                  data: {"chunk": " a middleware"}
+
+                  event: done
+                  data: {"responseTimeMs": 2340, "retrievedChunks": 3}
+
+  /content/personalize:
+    post:
+      tags:
+        - Content
+      summary: Get personalized content
+      description: Retrieve chapter content personalized to user's experience level
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chapterSlug
+              properties:
+                chapterSlug:
+                  type: string
+                  example: week-3-ros2-fundamentals
+                level:
+                  type: string
+                  enum: [beginner, intermediate, advanced]
+                  description: Override user's default level
+                  example: beginner
+      responses:
+        '200':
+          description: Personalized content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapterSlug:
+                    type: string
+                    example: week-3-ros2-fundamentals
+                  level:
+                    type: string
+                    example: beginner
+                  content:
+                    type: string
+                    description: Markdown content personalized to level
+                  cached:
+                    type: boolean
+                    example: true
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Chapter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /content/translate:
+    post:
+      tags:
+        - Content
+      summary: Translate content
+      description: Translate chapter content to specified language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chapterSlug
+                - targetLanguage
+              properties:
+                chapterSlug:
+                  type: string
+                  example: week-3-ros2-fundamentals
+                targetLanguage:
+                  type: string
+                  enum: [en, ur]
+                  example: ur
+      responses:
+        '200':
+          description: Translated content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapterSlug:
+                    type: string
+                    example: week-3-ros2-fundamentals
+                  language:
+                    type: string
+                    example: ur
+                  content:
+                    type: string
+                    description: Translated markdown content
+                  cached:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid language or chapter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /preferences:
+    get:
+      tags:
+        - Content
+      summary: Get user preferences
+      description: Retrieve current user's preferences
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Content
+      summary: Update user preferences
+      description: Update current user's preferences
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  preferences:
+                    $ref: '#/components/schemas/UserPreferences'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check API and dependencies health status
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2026-03-01T14:49:17.732Z
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: healthy
+                      vectorDb:
+                        type: string
+                        example: healthy
+                      openai:
+                        type: string
+                        example: healthy
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        softwareExperience:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          example: intermediate
+        hardwareExperience:
+          type: string
+          enum: [none, hobbyist, professional]
+          example: hobbyist
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-03-01T10:00:00Z
+
+    UserPreferences:
+      type: object
+      properties:
+        personalizationEnabled:
+          type: boolean
+          example: true
+        preferredLanguage:
+          type: string
+          enum: [en, ur]
+          example: en
+        lastChapterVisited:
+          type: string
+          nullable: true
+          example: week-3-ros2-fundamentals
+
+    ChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 10
+          maxLength: 1000
+          example: What is ROS 2 and how does it work?
+        selectedText:
+          type: string
+          maxLength: 2000
+          nullable: true
+          example: ROS 2 is a middleware for robot control
+        context:
+          type: object
+          nullable: true
+          properties:
+            chapterSlug:
+              type: string
+              example: week-3-ros2-fundamentals
+            section:
+              type: string
+              example: ROS 2 Architecture
+
+    ChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+          example: ROS 2 (Robot Operating System 2) is a middleware framework...
+        references:
+          type: array
+          items:
+            type: object
+            properties:
+              chapterSlug:
+                type: string
+                example: week-3-ros2-fundamentals
+              chapterTitle:
+                type: string
+                example: ROS 2 Fundamentals
+              section:
+                type: string
+                example: ROS 2 Architecture
+              relevanceScore:
+                type: number
+                format: float
+                example: 0.89
+        responseTimeMs:
+          type: integer
+          example: 2340
+        retrievedChunks:
+          type: integer
+          example: 3
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Invalid email format
+        code:
+          type: string
+          example: VALIDATION_ERROR
