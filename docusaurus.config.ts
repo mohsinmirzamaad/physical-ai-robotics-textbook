@@ -10,10 +10,10 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://mohsinmirzamaad.github.io',
+  url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mohsinmirzamaad.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/physical-ai-robotics-textbook/',
+  baseUrl: process.env.VERCEL ? '/' : '/physical-ai-robotics-textbook/',
 
   // GitHub pages deployment config.
   organizationName: 'mohsinmirzamaad', // Your GitHub username
