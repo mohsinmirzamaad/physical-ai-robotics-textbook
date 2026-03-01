@@ -101,7 +101,7 @@ const config: Config = {
             },
             {
               label: 'ROS 2 Fundamentals',
-              to: '/docs/module-1-ros2',
+              to: '/docs/module-1-ros2/week-1-2-physical-ai-intro/foundations',
             },
           ],
         },

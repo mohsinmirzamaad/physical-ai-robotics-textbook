@@ -4,13 +4,9 @@
  */
 
 import React from "react";
-import { authClient } from "@site/src/lib/auth-client";
 
 // Root component that wraps the entire Docusaurus app
+// TODO: Add SessionProvider when auth is fully configured
 export default function Root({ children }: { children: React.ReactNode }) {
-  return (
-    <authClient.SessionProvider>
-      {children}
-    </authClient.SessionProvider>
-  );
+  return <>{children}</>;
 }

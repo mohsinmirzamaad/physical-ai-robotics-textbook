@@ -11,7 +11,9 @@
       "Bash(npx:*)",
       "Bash(test:*)",
       "Bash(cp:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git add:*)"
     ]
   }
 }
