@@ -10,32 +10,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: 'Comprehensive Curriculum',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        16 detailed chapters across 4 modules covering ROS 2, Digital Twin simulation,
+        NVIDIA Isaac platform, and Vision-Language-Action models for humanoid robotics.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Industry-Standard Tools',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Learn with professional tools: ROS 2, Gazebo, Unity, NVIDIA Isaac Sim,
+        Isaac ROS, and Nav2 for autonomous navigation and embodied AI.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Hands-On Learning',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        From sensor systems to bipedal locomotion, from kinematics to conversational AI.
+        Build real-world skills in Physical AI and humanoid robotics development.
       </>
     ),
   },
