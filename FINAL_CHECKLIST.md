@@ -79,9 +79,8 @@ https://mohsinmirzamaad.github.io/physical-ai-robotics-textbook/
 
 2. **Published Book Link** ✅
    ```
-   https://hackathon-1-drab.vercel.app
+   https://physical-ai-robotics-textbook-eta.vercel.app
    ```
-   (Also available at: https://mohsinmirzamaad.github.io/physical-ai-robotics-textbook/)
 
 3. **Demo Video Link** ⏳
    - Upload to YouTube (unlisted) or Google Drive
