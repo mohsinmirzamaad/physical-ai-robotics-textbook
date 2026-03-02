@@ -15,7 +15,14 @@
       "Bash(npm run:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(start:*)",
+      "Bash(npm start:*)",
+      "Bash(npm:*)"
     ]
   }
 }

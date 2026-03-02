@@ -104,11 +104,11 @@ async def root():
     }
 
 
-# Import and register routes (will be created in subsequent tasks)
-# from api.routes import auth, chat, content
-# app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-# app.include_router(chat.router, prefix="/api/chat", tags=["Chatbot"])
-# app.include_router(content.router, prefix="/api/content", tags=["Content"])
+# Import and register routes
+from api.routes import chat, content
+
+app.include_router(chat.router, prefix="/api/chat", tags=["Chatbot"])
+app.include_router(content.router, prefix="/api/content", tags=["Content"])
 
 
 if __name__ == "__main__":
