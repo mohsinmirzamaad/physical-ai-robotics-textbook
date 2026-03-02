@@ -4,24 +4,40 @@ Run this once to populate the database with textbook chapters
 """
 
 import os
+import sys
 import asyncio
 from pathlib import Path
 from typing import List, Dict
 import re
+from uuid import uuid4
+from dotenv import load_dotenv
 
-from api.services.openai_client import OpenAIClient
-from api.services.qdrant_client import QdrantClient
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# Load environment variables
+load_dotenv()
+
+from api.services.openai_client import generate_embedding
+from api.services.qdrant_client import init_collection, upsert_embeddings_batch
 
 
 async def read_markdown_files(docs_dir: str = "docs") -> List[Dict]:
     """
     Read all markdown files from docs directory
     """
-    docs_path = Path(docs_dir)
+    # Get absolute path relative to script location
+    script_dir = Path(__file__).parent.parent.parent
+    docs_path = script_dir / docs_dir
+
+    print(f"  Looking for markdown files in: {docs_path}")
+    print(f"  Path exists: {docs_path.exists()}")
+
     markdown_files = []
 
     for md_file in docs_path.rglob("*.md"):
-        if md_file.name == "intro.md":
+        # Skip tutorial files
+        if "tutorial" in str(md_file):
             continue
 
         with open(md_file, 'r', encoding='utf-8') as f:
@@ -29,16 +45,20 @@ async def read_markdown_files(docs_dir: str = "docs") -> List[Dict]:
 
         # Extract metadata from path
         parts = md_file.parts
-        module = parts[1] if len(parts) > 1 else "unknown"
+        module = parts[-3] if len(parts) > 2 else "unknown"
 
         # Extract title from first heading
         title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
         title = title_match.group(1) if title_match else md_file.stem
 
+        # Create slug from file path
+        slug = str(md_file.relative_to(docs_path)).replace('\\', '/').replace('.md', '')
+
         markdown_files.append({
             "file_path": str(md_file),
             "module": module,
             "title": title,
+            "slug": slug,
             "content": content
         })
 
@@ -73,75 +93,78 @@ async def embed_all_content():
     """
     Main function to embed all textbook content
     """
+    print("=" * 60)
     print("Starting content embedding process...")
+    print("=" * 60)
 
-    # Initialize clients
-    openai_client = OpenAIClient(api_key=os.getenv("OPENAI_API_KEY"))
-    qdrant_client = QdrantClient(
-        url=os.getenv("QDRANT_URL"),
-        api_key=os.getenv("QDRANT_API_KEY")
-    )
-
-    # Create collection if it doesn't exist
-    collection_name = "textbook_content"
-    try:
-        await qdrant_client.create_collection(
-            collection_name=collection_name,
-            vector_size=1536  # OpenAI embedding size
-        )
-        print(f"Collection '{collection_name}' created")
-    except Exception as e:
-        print(f"Collection might already exist: {e}")
+    # Initialize collection
+    print("\n[1/4] Initializing Qdrant collection...")
+    await init_collection()
 
     # Read all markdown files
-    print("Reading markdown files...")
+    print("\n[2/4] Reading markdown files...")
     markdown_files = await read_markdown_files()
     print(f"Found {len(markdown_files)} markdown files")
 
     # Process each file
+    print("\n[3/4] Processing and embedding content...")
     total_chunks = 0
+    all_points = []
+
     for idx, file_data in enumerate(markdown_files):
-        print(f"\nProcessing {idx+1}/{len(markdown_files)}: {file_data['title']}")
+        print(f"\n  [{idx+1}/{len(markdown_files)}] {file_data['title']}")
 
         # Chunk the content
         chunks = chunk_content(file_data['content'])
-        print(f"  Created {len(chunks)} chunks")
+        print(f"    - Created {len(chunks)} chunks")
 
-        # Generate embeddings and store
+        # Generate embeddings for each chunk
+        chapter_id = uuid4()
         for chunk_idx, chunk in enumerate(chunks):
             # Generate embedding
-            embedding = await openai_client.generate_embedding(chunk)
+            embedding = await generate_embedding(chunk)
 
-            # Prepare metadata
-            metadata = {
-                "text": chunk,
+            # Prepare point data
+            point_data = {
+                "point_id": uuid4(),
+                "embedding": embedding,
+                "chapter_id": chapter_id,
+                "chapter_slug": file_data['slug'],
                 "chapter_title": file_data['title'],
-                "module": file_data['module'],
-                "file_path": file_data['file_path'],
-                "chunk_index": chunk_idx
+                "chunk_index": chunk_idx,
+                "content": chunk,
+                "token_count": len(chunk.split())
             }
 
-            # Store in Qdrant
-            point_id = f"{idx}_{chunk_idx}"
-            await qdrant_client.upsert(
-                collection_name=collection_name,
-                points=[{
-                    "id": point_id,
-                    "vector": embedding,
-                    "payload": metadata
-                }]
-            )
-
+            all_points.append(point_data)
             total_chunks += 1
-            if total_chunks % 10 == 0:
-                print(f"  Processed {total_chunks} chunks...")
 
-    print(f"\n✅ Embedding complete! Total chunks: {total_chunks}")
+            if total_chunks % 10 == 0:
+                print(f"    - Processed {total_chunks} chunks...")
+
+    # Batch upsert all points in smaller batches to avoid timeout
+    print(f"\n[4/4] Uploading {total_chunks} embeddings to Qdrant...")
+    if all_points:
+        batch_size = 50
+        for i in range(0, len(all_points), batch_size):
+            batch = all_points[i:i+batch_size]
+            await upsert_embeddings_batch(batch)
+            print(f"  Uploaded batch {i//batch_size + 1}/{(len(all_points) + batch_size - 1)//batch_size} ({len(batch)} points)")
+    else:
+        print("  WARNING: No points to upload!")
+
+    print("\n" + "=" * 60)
+    print("Embedding complete!")
+    print("=" * 60)
+    print(f"Total files processed: {len(markdown_files)}")
+    print(f"Total chunks embedded: {total_chunks}")
+    print(f"Collection name: textbook_embeddings")
+    print("=" * 60)
 
     return {
         "total_files": len(markdown_files),
         "total_chunks": total_chunks,
-        "collection_name": collection_name
+        "collection_name": "textbook_embeddings"
     }
 
 
