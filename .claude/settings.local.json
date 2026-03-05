@@ -23,7 +23,15 @@
       "Bash(start:*)",
       "Bash(npm start:*)",
       "Bash(npm:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "WebFetch(domain:physical-ai-robotics-textbook-eta.vercel.app)",
+      "WebFetch(domain:mohsinmirzamaad.github.io)",
+      "Bash(grep -r \"getenv\\\\|environ\" *.py routes/*.py services/*.py database/*.py)",
+      "Bash(pkill -f \"uvicorn main:app\")",
+      "Bash(cat .github/workflows/*.yml)",
+      "Bash(gh run list --limit 3)",
+      "WebFetch(domain:github.com)",
+      "Bash(USE_SSH=true npm run deploy)"
     ]
   }
 }

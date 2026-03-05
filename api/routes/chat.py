@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 
-from api.services.openai_client import generate_embedding
-from api.services.qdrant_client import client as qdrant_client
-from api.database.queries import create_chat_message, get_chat_history
+from services.openai_client import generate_embedding
+from services.qdrant_client import client as qdrant_client
+from database.queries import create_chat_message, get_chat_history
 from openai import AsyncOpenAI
 
 router = APIRouter()

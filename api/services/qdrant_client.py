@@ -163,13 +163,13 @@ async def search_similar(
             ]
         )
 
-    results = client.search(
+    results = client.query_points(
         collection_name=COLLECTION_NAME,
-        query_vector=query_embedding,
+        query=query_embedding,
         limit=limit,
         query_filter=search_filter,
         score_threshold=score_threshold
-    )
+    ).points
 
     return [
         {
@@ -253,10 +253,10 @@ async def get_collection_info() -> Dict[str, Any]:
 
     return {
         "name": COLLECTION_NAME,
-        "vectors_count": info.vectors_count,
+        "vectors_count": info.vectors_count if hasattr(info, 'vectors_count') else info.points_count,
         "points_count": info.points_count,
         "status": info.status,
-        "optimizer_status": info.optimizer_status
+        "optimizer_status": info.optimizer_status if hasattr(info, 'optimizer_status') else "unknown"
     }
 
 

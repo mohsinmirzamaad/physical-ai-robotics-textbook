@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
-from api.database.connection import init_database, close_pool
+from database.connection import init_database, close_pool
 
 load_dotenv()
 
@@ -105,7 +105,7 @@ async def root():
 
 
 # Import and register routes
-from api.routes import chat, content
+from routes import chat, content
 
 app.include_router(chat.router, prefix="/api/chat", tags=["Chatbot"])
 app.include_router(content.router, prefix="/api/content", tags=["Content"])

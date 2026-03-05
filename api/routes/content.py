@@ -8,7 +8,7 @@ from typing import Optional
 import os
 
 from openai import AsyncOpenAI
-from api.database.queries import get_user_preferences
+from database.queries import get_user_preferences
 
 router = APIRouter()
 
@@ -116,7 +116,7 @@ async def embed_content():
     This should be run once to populate the vector database
     """
     try:
-        from api.scripts.embed_content import embed_all_content
+        from scripts.embed_content import embed_all_content
 
         result = await embed_all_content()
         return {
