@@ -10,10 +10,10 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mohsinmirzamaad.github.io',
+  url: 'https://mohsinmirzamaad.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: process.env.VERCEL ? '/' : '/physical-ai-robotics-textbook/',
+  baseUrl: '/physical-ai-robotics-textbook/',
 
   // GitHub pages deployment config.
   organizationName: 'mohsinmirzamaad', // Your GitHub username
@@ -36,10 +36,8 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/mohsinmirzamaad/physical-ai-robotics-textbook/tree/main/',
         },
         blog: {
           showReadingTime: true,
@@ -47,11 +45,8 @@ const config: Config = {
             type: ['rss', 'atom'],
             xslt: true,
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
+            'https://github.com/mohsinmirzamaad/physical-ai-robotics-textbook/tree/main/',
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
@@ -84,7 +79,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/your-org/physical-ai-textbook',
+          href: 'https://github.com/mohsinmirzamaad/physical-ai-robotics-textbook',
           label: 'GitHub',
           position: 'right',
         },
@@ -124,7 +119,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/your-org/physical-ai-textbook',
+              href: 'https://github.com/mohsinmirzamaad/physical-ai-robotics-textbook',
             },
           ],
         },
